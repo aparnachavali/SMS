@@ -88,34 +88,46 @@ class Instructor(models.Model):
 
 class Subject(models.Model):
     name = models.CharField(max_length=120)
-    staff = models.ForeignKey(Instructor, on_delete=models.CASCADE, )
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    timeslots = models.TimeField(default='10:00', unique=True)
-    days = models.CharField(default="Mon, Wed, Fri", max_length=120)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
-class StudentSubjects(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
-    subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
-    created_at = models.DateTimeField(auto_now_add=True)
+class Section(models.Model):
+    staff = models.ForeignKey(Instructor, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    session = models.ForeignKey(AcademicSession, on_delete=models.CASCADE)
     updated_at = models.DateTimeField(auto_now=True)
-
-
-class Attendance(models.Model):
-    session = models.ForeignKey(AcademicSession, on_delete=models.DO_NOTHING)
-    subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
-    date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['subject', 'staff', 'session'], name='unique_section')
+        ]
+    def __str__(self):
+        return self.name
+
+class SectionTimeSlot(models.Model): 
+    timeslot = models.TimeField(default='10:00', unique=True, verbose_name='time')
+    day = models.CharField(default="Mon", max_length=3)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['section', 'timeslot', 'day'], name='unique_timeslot')
+        ]
+
+class SectionStudents(models.Model):
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
 
 
 class AttendanceReport(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
-    attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    attendance = models.ForeignKey(SectionTimeSlot, on_delete=models.CASCADE)
+    date = models.DateField()
     status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -183,6 +195,14 @@ class StudentNotificationStaff(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     staff = models.ForeignKey(Instructor, on_delete=models.CASCADE)
     message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class Assignment(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    name = models.TextField()
+    file_name = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
