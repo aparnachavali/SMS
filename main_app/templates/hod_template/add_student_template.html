@@ -1,7 +1,7 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
 {% block custom_css %}
-  <style>
+    <style>
       .invalid{
         font-style: italic;
         font-weight: bold;
@@ -12,33 +12,31 @@
         font-weight: bold;
         color: green;
       }
-  </style>
+    </style>
 {% endblock custom_css %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
-
+{% block page_title %}
+    {{ page_title }}
+{% endblock page_title %}
 {% block content %}
-
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <!-- general form elements -->
-                <div class="card card-dark">
-                    <div class="card-header">
-                        <h3 class="card-title">{{page_title}}</h3>
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- general form elements -->
+                    <div class="card card-dark">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ page_title }}</h3>
+                        </div>
+                        {% include "main_app/form_template.html" with messages=messages form=form button_text="Add Student" %}
                     </div>
-
-                    {% include "main_app/form_template.html" with messages=messages  form=form button_text="Add Student"%}
+                    <!-- /.card -->
                 </div>
-                <!-- /.card -->
-
             </div>
         </div>
-    </div>
-</section>
+    </section>
 {% endblock content %}
 {% block custom_js %}
-<script>
+    <script>
     function validateEmail(email) {
         const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(String(email).toLowerCase());
@@ -68,5 +66,5 @@
         }
         })
     });
-</script>
+    </script>
 {% endblock custom_js %}

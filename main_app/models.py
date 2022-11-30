@@ -125,7 +125,7 @@ class SectionStudents(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
 
 class Attendance(models.Model):
-    section_timeslot = models.ForeignKey(SectionTimeSlot, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -68,35 +68,37 @@ def logout_user(request):
     return redirect("/")
 
 
-@csrf_exempt
-def get_timeslots(request):
-    section_id = request.POST.get('section')
-    try:
-        section = get_object_or_404(Section, id=section_id)
-        timeslots = SectionTimeSlot.objects.filter(section_id=section_id)
-        timeslot_list = []
-        for ts in timeslots:
-            data = {
-                "id": ts.id,
-                "timeslot": str(ts.day + " " + ts.timeslot),
-            }
-            timeslot_list.append(data)
-        return JsonResponse(json.dumps(timeslot_list), safe=False)
-    except Exception as e:
-        return None
+# @csrf_exempt
+# def get_timeslots(request):
+#     section_id = request.POST.get('section')
+#     try:
+#         section = get_object_or_404(Section, id=section_id)
+#         timeslots = SectionTimeSlot.objects.filter(section_id=section_id)
+#         timeslot_list = []
+#         for ts in timeslots:
+#             data = {
+#                 "id": ts.id,
+#                 "timeslot": str(ts.day + " " + ts.timeslot),
+#             }
+#             timeslot_list.append(data)
+#         return JsonResponse(json.dumps(timeslot_list), safe=False)
+#     except Exception as e:
+#         return None
 
 
 @csrf_exempt
 def get_attendance(request):
-    timeslot_id = request.POST.get('timeslot_id')
+    subject_id = request.POST.get('subject')
+    session_id = request.POST.get('session')
     try:
-        attendance = Attendance.objects.filter(section_timeslot_id=timeslot_id)
+        sections = Section.objects.filter(subject_id=subject_id, session_id=session_id)
+        attendance = Attendance.objects.filter(sections__in=sections)
         attendance_list = []
         for attd in attendance:
             data = {
                 "id": attd.id,
                 "attendance_date": str(attd.date),
-                "session": attd.session.id
+                "section_id": str(attd.section.id)
             }
             attendance_list.append(data)
         return JsonResponse(json.dumps(attendance_list), safe=False)

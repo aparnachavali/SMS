@@ -20,12 +20,14 @@ def admin_home(request):
     subjects = Subject.objects.all()
     total_subject = subjects.count()
     total_course = Course.objects.all().count()
-    attendance_list = Attendance.objects.filter(subject__in=subjects)
+    attendance_list = Attendance.objects.all().count()
     total_attendance = attendance_list.count()
     attendance_list = []
     subject_list = []
     for subject in subjects:
-        attendance_count = Attendance.objects.filter(subject=subject).count()
+        sections = Section.objects.filter(subject=subject)
+        section_timeslot = SectionTimeSlot.objects.filter(sections__in=sections)
+        attendance_count = Attendance.objects.filter(section_timeslot=section_timeslot).count()
         subject_list.append(subject.name[:7])
         attendance_list.append(attendance_count)
 
@@ -105,8 +107,10 @@ def add_staff(request):
                     email=email, password=password, user_type=2, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
                 user.address = address
-                user.instructor.course = course
-                user.save()
+                instructer = Instructor()
+                instructer.custom_user = user
+                instructer.course = course
+                instructer.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_staff'))
             except Exception as e:
@@ -139,9 +143,11 @@ def add_student(request):
                     email=email, password=password, user_type=3, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
                 user.address = address
-                user.student.session = session
-                user.student.course = course
-                user.save()
+                student = Student()
+                student.session = session
+                student.course = course
+                student.custom_user = user
+                student.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_student'))
             except Exception as e:
@@ -183,14 +189,10 @@ def add_subject(request):
         if form.is_valid():
             name = form.cleaned_data.get('name')
             course = form.cleaned_data.get('course')
-            staff = form.cleaned_data.get('staff')
-            timeslots = form.cleaned_data.get('timeslots')
             try:
                 subject = Subject()
                 subject.name = name
-                subject.staff = staff
                 subject.course = course
-                subject.timeslots = timeslots
                 subject.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_subject'))
@@ -204,8 +206,6 @@ def add_subject(request):
 
 def manage_staff(request):
     allStaff = CustomUser.objects.filter(user_type=2)
-    for staff in allStaff:
-        print(staff.id)
     context = {
         'allStaff': allStaff,
         'page_title': 'Manage Instructor'
@@ -241,7 +241,7 @@ def manage_subject(request):
 
 
 def edit_staff(request, staff_id):
-    staff = get_object_or_404(Instructor, admin_id=staff_id)
+    staff = get_object_or_404(Instructor, custom_user_id=staff_id)
     form = StaffForm(request.POST or None, instance=staff)
     context = {
         'form': form,
@@ -290,7 +290,7 @@ def edit_staff(request, staff_id):
 
 
 def edit_student(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
+    student = get_object_or_404(Student, custom_user_id=student_id)
     form = StudentForm(request.POST or None, instance=student)
     context = {
         'form': form,
@@ -374,14 +374,10 @@ def edit_subject(request, subject_id):
         if form.is_valid():
             name = form.cleaned_data.get('name')
             course = form.cleaned_data.get('course')
-            staff = form.cleaned_data.get('staff')
-            timeslots = form.cleaned_data.get('timeslots')
             try:
                 subject = Subject.objects.get(id=subject_id)
                 subject.name = name
-                subject.staff = staff
                 subject.course = course
-                subject.timeslots = timeslots
                 subject.save()
                 messages.success(request, "Successfully Updated")
                 return redirect(reverse('edit_subject', args=[subject_id]))
@@ -409,13 +405,13 @@ def add_session(request):
 
 
 def manage_session(request):
-    sessions = Session.objects.all()
+    sessions = AcademicSession.objects.all()
     context = {'sessions': sessions, 'page_title': 'Manage Sessions'}
     return render(request, "hod_template/manage_session.html", context)
 
 
 def edit_session(request, session_id):
-    instance = get_object_or_404(Session, id=session_id)
+    instance = get_object_or_404(AcademicSession, id=session_id)
     form = SessionForm(request.POST or None, instance=instance)
     context = {'form': form, 'session_id': session_id,
                'page_title': 'Edit Session'}
@@ -543,7 +539,7 @@ def view_student_leave(request):
 
 def admin_view_attendance(request):
     subjects = Subject.objects.all()
-    sessions = Session.objects.all()
+    sessions = AcademicSession.objects.all()
     context = {
         'subjects': subjects,
         'sessions': sessions,
@@ -555,14 +551,10 @@ def admin_view_attendance(request):
 
 @csrf_exempt
 def get_admin_attendance(request):
-    subject_id = request.POST.get('subject')
-    session_id = request.POST.get('session')
-    attendance_date_id = request.POST.get('attendance_date_id')
+    attendance_id = request.POST.get('attendance_id')
     try:
-        subject = get_object_or_404(Subject, id=subject_id)
-        session = get_object_or_404(Session, id=session_id)
         attendance = get_object_or_404(
-            Attendance, id=attendance_date_id, session=session)
+            Attendance, id=attendance_id)
         attendance_reports = AttendanceReport.objects.filter(
             attendance=attendance)
         json_data = []
@@ -578,7 +570,7 @@ def get_admin_attendance(request):
 
 
 def admin_view_profile(request):
-    admin = get_object_or_404(Admin, admin=request.user)
+    admin = get_object_or_404(Admin, custom_user=request.user)
     form = AdminForm(request.POST or None, request.FILES or None,
                      instance=admin)
     context = {'form': form,
@@ -634,22 +626,22 @@ def admin_notify_student(request):
 def send_student_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
-    student = get_object_or_404(Student, admin_id=id)
+    student = get_object_or_404(Student, custom_user_id=id)
     try:
-        url = "https://fcm.googleapis.com/fcm/send"
-        body = {
-            'notification': {
-                'title': "Student Management System",
-                'body': message,
-                'click_action': reverse('student_view_notification'),
-                'icon': static('dist/img/AdminLTELogo.png')
-            },
-            'to': student.custom_user.fcm_token
-        }
-        headers = {'Authorization':
-                   'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
-                   'Content-Type': 'application/json'}
-        data = requests.post(url, data=json.dumps(body), headers=headers)
+        # url = "https://fcm.googleapis.com/fcm/send"
+        # body = {
+        #     'notification': {
+        #         'title': "Student Management System",
+        #         'body': message,
+        #         'click_action': reverse('student_view_notification'),
+        #         'icon': static('dist/img/AdminLTELogo.png')
+        #     },
+        #     'to': student.custom_user.fcm_token
+        # }
+        # headers = {'Authorization':
+        #            'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
+        #            'Content-Type': 'application/json'}
+        # data = requests.post(url, data=json.dumps(body), headers=headers)
         notification = NotificationStudent(student=student, message=message)
         notification.save()
         return HttpResponse("True")
@@ -661,22 +653,22 @@ def send_student_notification(request):
 def send_staff_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
-    staff = get_object_or_404(Instructor, admin_id=id)
+    staff = get_object_or_404(Instructor, custom_user_id=id)
     try:
-        url = "https://fcm.googleapis.com/fcm/send"
-        body = {
-            'notification': {
-                'title': "Student Management System",
-                'body': message,
-                'click_action': reverse('staff_view_notification'),
-                'icon': static('dist/img/AdminLTELogo.png')
-            },
-            'to': staff.custom_user.fcm_token
-        }
-        headers = {'Authorization':
-                   'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
-                   'Content-Type': 'application/json'}
-        data = requests.post(url, data=json.dumps(body), headers=headers)
+        # url = "https://fcm.googleapis.com/fcm/send"
+        # body = {
+        #     'notification': {
+        #         'title': "Student Management System",
+        #         'body': message,
+        #         'click_action': reverse('staff_view_notification'),
+        #         'icon': static('dist/img/AdminLTELogo.png')
+        #     },
+        #     'to': staff.custom_user.fcm_token
+        # }
+        # headers = {'Authorization':
+        #            'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
+        #            'Content-Type': 'application/json'}
+        # data = requests.post(url, data=json.dumps(body), headers=headers)
         notification = NotificationStaff(staff=staff, message=message)
         notification.save()
         return HttpResponse("True")
@@ -692,7 +684,7 @@ def delete_staff(request, staff_id):
 
 
 def delete_student(request, student_id):
-    student = get_object_or_404(CustomUser, student__id=student_id)
+    student = get_object_or_404(CustomUser, id=student_id)
     student.delete()
     messages.success(request, "Student deleted successfully!")
     return redirect(reverse('manage_student'))
@@ -717,7 +709,7 @@ def delete_subject(request, subject_id):
 
 
 def delete_session(request, session_id):
-    session = get_object_or_404(Session, id=session_id)
+    session = get_object_or_404(AcademicSession, id=session_id)
     try:
         session.delete()
         messages.success(request, "Session deleted successfully!")

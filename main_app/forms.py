@@ -109,7 +109,7 @@ class SessionForm(FormSettings):
         super(SessionForm, self).__init__(*args, **kwargs)
 
     class Meta:
-        model = Session
+        model = AcademicSession
         fields = '__all__'
         widgets = {
             'start_year': DateInput(attrs={'type': 'date'}),
