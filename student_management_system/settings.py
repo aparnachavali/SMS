@@ -97,9 +97,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'student-management',
-        'USER': 'admin',
-        'PASSWORD': 'Admin123',
-        'HOST': 'sms-database.cxcfvqmerwum.us-east-2.rds.amazonaws.com',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST':'localhost',#'sms-database.cxcfvqmerwum.us-east-2.rds.amazonaws.com',
         'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"

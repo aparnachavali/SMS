@@ -399,6 +399,17 @@
                                     </p>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                {% url 'staff_view_student_notification' as staff_view_student_notification %}
+                                <a href="{{staff_view_student_notification}}"
+                                   class="nav-link {% if staff_view_student_notification == request.path %} active {% endif %}">
+                                    <i class="nav-icon fas fa-comment-alt"></i>
+                                    <p>
+                                                    View Student Notifications
+
+                                    </p>
+                                </a>
+                            </li>
 
                             <li class="nav-item">
                                 {% url 'staff_apply_leave' as staff_apply_leave %}
@@ -410,6 +421,16 @@
 
                                     </p>
                                 </a>
+                            </li>
+                            <li class="nav-item">
+                              {% url 'staff_notify_student' as staff_notify_student %}
+                              <a href="{{staff_notify_student}}"
+                                 class="nav-link {% if staff_notify_student == request.path %} active {% endif %}">
+                                 <i class="nav-icon fas fa-bullhorn"></i>
+                                  <p>
+                                        Notify Student
+                                  </p>
+                              </a>
                             </li>
 
                             <li class="nav-item">
@@ -473,6 +494,28 @@
                                                 </p>
                                             </a>
                                         </li>
+                                        <li class="nav-item">
+                                            {% url 'student_add_subject' as student_add_subject %}
+                                            <a href="{{student_add_subject}}"
+                                                class="nav-link {% if student_add_subject == request.path %} active {% endif %}">
+                                                <i class="nav-icon fas fa-comment-alt"></i>
+                                                <p>
+                                                     Add Subject
+
+                                                </p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            {% url 'student_manage_subjects' as student_manage_subjects %}
+                                            <a href="{{student_manage_subjects}}"
+                                                class="nav-link {% if student_manage_subjects == request.path %} active {% endif %}">
+                                                <i class="nav-icon fas fa-comment-alt"></i>
+                                                <p>
+                                                    Manage subjects
+
+                                                </p>
+                                            </a>
+                                        </li>
 
                                         <li class="nav-item">
                                             {% url 'student_view_attendance' as student_view_attendance %}
@@ -493,7 +536,27 @@
                                                 </p>
                                             </a>
                                         </li>
+                                        <li class="nav-item">
+                                            {% url 'student_notify_staff' as student_notify_staff %}
+                                            <a href="{{student_notify_staff}}"
+                                                class="nav-link {% if staff_notify_student == request.path %} active {% endif %}">
+                                                <i class="nav-icon fas fa-bullhorn"></i>
+                                                <p>
+                                                                 Notify Staff
+                                                </p>
+                                             </a>
+                                        </li>
 
+                                        <li class="nav-item">
+                                            {% url 'student_view_staff_notification' as student_view_staff_notification %}
+                                            <a href="{{student_view_staff_notification}}"
+                                                class="nav-link {% if student_view_staff_notification == request.path %} active {% endif %}">
+                                                <i class="nav-icon fas fa-bell"></i>
+                                                <p>
+                                                    View Staff Notifications
+                                                </p>
+                                            </a>
+                                        </li>
                                         <li class="nav-item">
                                             {% url 'student_apply_leave' as student_apply_leave %}
                                             <a href="{{student_apply_leave}}"

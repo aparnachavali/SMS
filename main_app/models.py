@@ -28,7 +28,7 @@ class CustomUserManager(UserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class Session(models.Model):
+class AcademicSession(models.Model):
     start_year = models.DateField()
     end_year = models.DateField()
 
@@ -57,7 +57,7 @@ class CustomUser(AbstractUser):
 
 
 class Admin(models.Model):
-    admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
 
 
 class Course(models.Model):
@@ -70,20 +70,20 @@ class Course(models.Model):
 
 
 class Student(models.Model):
-    admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.DO_NOTHING, null=True, blank=False)
-    session = models.ForeignKey(Session, on_delete=models.DO_NOTHING, null=True)
+    session = models.ForeignKey(AcademicSession, on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
-        return self.admin.last_name + ", " + self.admin.first_name
+        return self.custom_user.last_name + ", " + self.custom_user.first_name
 
 
 class Instructor(models.Model):
     course = models.ForeignKey(Course, on_delete=models.DO_NOTHING, null=True, blank=False)
-    admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.admin.last_name + " " + self.admin.first_name
+        return self.custom_user.last_name + " " + self.custom_user.first_name
 
 
 class Subject(models.Model):
@@ -98,9 +98,15 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
+class StudentSubjects(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
 class Attendance(models.Model):
-    session = models.ForeignKey(Session, on_delete=models.DO_NOTHING)
+    session = models.ForeignKey(AcademicSession, on_delete=models.DO_NOTHING)
     subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -163,11 +169,33 @@ class NotificationStudent(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class StaffNotificationStudent(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    #student= models.BooleanField(default=True)
+    staff = models.ForeignKey(Instructor, on_delete=models.CASCADE)
+    sender = models.TextField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class StudentNotificationStaff(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    staff = models.ForeignKey(Instructor, on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class StudentResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    test = models.FloatField(default=0)
-    exam = models.FloatField(default=0)
+    mid2 = models.FloatField(default=0, verbose_name="Mid 2")
+    mid1 = models.FloatField(default=0, verbose_name="Mid 1")
+    assignment1 = models.FloatField(default=0, verbose_name="Assignment 1")
+    assignment2 = models.FloatField(default=0, verbose_name="Assignment 2")
+    assignment3 = models.FloatField(default=0, verbose_name="Assignment 3")
+    assignment4 = models.FloatField(default=0, verbose_name="Assignment 4")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -186,7 +214,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def save_user_profile(sender, instance, **kwargs):
     if instance.user_type == 1:
-        instance.admin.save()
+        instance.custom_user.save()
     if instance.user_type == 2:
         instance.instructor.save()
     if instance.user_type == 3:

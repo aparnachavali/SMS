@@ -22,7 +22,7 @@ def student_home(request):
     if total_attendance == 0:  # Don't divide. DivisionByZero
         percent_absent = percent_present = 0
     else:
-        percent_present = math.floor((total_present/total_attendance) * 100)
+        percent_present = math.floor((total_present / total_attendance) * 100)
         percent_absent = math.ceil(100 - percent_present)
     subject_name = []
     data_present = []
@@ -52,7 +52,7 @@ def student_home(request):
     return render(request, 'student_template/home_content.html', context)
 
 
-@ csrf_exempt
+@csrf_exempt
 def student_view_attendance(request):
     student = get_object_or_404(Student, admin=request.user)
     if request.method != 'POST':
@@ -77,7 +77,7 @@ def student_view_attendance(request):
             json_data = []
             for report in attendance_reports:
                 data = {
-                    "date":  str(report.attendance.date),
+                    "date": str(report.attendance.date),
                     "status": report.status
                 }
                 json_data.append(data)
@@ -151,7 +151,7 @@ def student_view_profile(request):
                 address = form.cleaned_data.get('address')
                 gender = form.cleaned_data.get('gender')
                 passport = request.FILES.get('profile_pic') or None
-                admin = student.admin
+                admin = student.custom_user
                 if password != None:
                     admin.set_password(password)
                 if passport != None:
@@ -197,6 +197,16 @@ def student_view_notification(request):
     return render(request, "student_template/student_view_notification.html", context)
 
 
+def student_view_staff_notification(request):
+    student = get_object_or_404(Student, admin=request.user)
+    notifications = StaffNotificationStudent.objects.filter(student=student, sender="staff")
+    context = {
+        'notifications': notifications,
+        'page_title': "View Notifications"
+    }
+    return render(request, "student_template/student_view_staff_notification.html", context)
+
+
 def student_view_result(request):
     student = get_object_or_404(Student, admin=request.user)
     results = StudentResult.objects.filter(student=student)
@@ -205,3 +215,104 @@ def student_view_result(request):
         'page_title': "View Results"
     }
     return render(request, "student_template/student_view_result.html", context)
+
+
+def student_add_subject(request):
+    student = get_object_or_404(Student, admin=request.user)
+    form = StudentSubjectForm(student, request.POST)
+    context = {'form': form,
+               'page_title': 'Add subject'
+               }
+    if request.method == 'POST':
+        try:
+            if form.is_valid():
+                subject = form.cleaned_data.get('subject')
+                existing_subjects = SudentSubjects.objects.filter(student=student)
+                if existing_subjects.count() >= 3:
+                    messages.error(request, "Invalid Data Provided")
+                    return redirect(reverse('student_add_subject'))
+                sSUb = SudentSubjects()
+                sSUb.student = student
+                sSUb.subject = subject
+                sSUb.save()
+                messages.success(request, "Subject Added!")
+                return redirect(reverse('student_add_subject'))
+            else:
+                messages.error(request, "Invalid Data Provided")
+        except Exception as e:
+            messages.error(request, "Error Occured While Adding Subject" + str(e))
+
+    return render(request, "student_template/student_add_subjects.html", context)
+
+
+def student_manage_subjects(request):
+    student = get_object_or_404(Student, admin=request.user)
+    subjects = []
+    student_subjects = SudentSubjects.objects.filter(student=student)
+    for ss in student_subjects:
+        subjects.append(ss.subject)
+    context = {
+        'subjects': subjects,
+        'page_title': 'Manage Subjects'
+    }
+
+    return render(request, "student_template/student_manage_subjects.html", context)
+
+
+@csrf_exempt
+def student_fcmtoken(request):
+    token = request.POST.get('token')
+    student_user = get_object_or_404(CustomUser, id=request.user.id)
+    try:
+        student_user.fcm_token = token
+        student_user.save()
+        return HttpResponse("True")
+    except Exception as e:
+        return HttpResponse("False")
+
+
+def student_notify_staff(request):
+    student = get_object_or_404(Student, admin=request.user)
+    studentSubjects = SudentSubjects.objects.filter(student=student)
+    staffSubjects = []
+
+    for ssb in studentSubjects:
+        staffSubjects.append({
+            'staff': ssb.subject.staff,
+            'subject': ssb.subject.name
+        })
+    # staff = CustomUser.objects.filter(user_type=2)
+    context = {
+        'page_title': "Send Notifications To Staff",
+        'staffSubjects': staffSubjects,
+    }
+    return render(request, "student_template/staff_notification.html", context)
+
+
+@csrf_exempt
+def student_staff_notification(request):
+    student = get_object_or_404(Student, admin=request.user)
+    id = request.POST.get('id')
+    message = request.POST.get('message')
+    staff = get_object_or_404(Instructor, admin_id=id)
+    try:
+        notification = StaffNotificationStudent()
+        notification.student = student
+        notification.staff = staff
+        notification.message = message
+        notification.sender = "student"
+        notification.save()
+        return HttpResponse("True")
+    except Exception as e:
+        return HttpResponse("False")
+
+@csrf_exempt
+def student_subject_delete(request, subject_id):
+    try:
+        student_subject = get_object_or_404(SudentSubjects, subject_id=subject_id)
+        student_subject.delete()
+        messages.success(request, "Subject deleted successfully!")
+        return redirect(reverse('student_manage_subjects'))
+
+    except Exception as e:
+        return e

@@ -43,7 +43,7 @@ class CustomUserForm(FormSettings):
                     "The given email is already registered")
         else:  # Update
             dbEmail = self.Meta.model.objects.get(
-                id=self.instance.pk).admin.email.lower()
+                id=self.instance.pk).custom_user.email.lower()
             if dbEmail != formEmail:  # There has been changes
                 if CustomUser.objects.filter(email=formEmail).exists():
                     raise forms.ValidationError("The given email is already registered")
@@ -52,7 +52,7 @@ class CustomUserForm(FormSettings):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'gender',  'password','profile_pic', 'address' ]
+        fields = ['first_name', 'last_name', 'email', 'gender', 'password', 'profile_pic', 'address']
 
 
 class StudentForm(CustomUserForm):
@@ -62,7 +62,7 @@ class StudentForm(CustomUserForm):
     class Meta(CustomUserForm.Meta):
         model = Student
         fields = CustomUserForm.Meta.fields + \
-            ['course', 'session']
+                 ['course', 'session']
 
 
 class AdminForm(CustomUserForm):
@@ -81,7 +81,7 @@ class StaffForm(CustomUserForm):
     class Meta(CustomUserForm.Meta):
         model = Instructor
         fields = CustomUserForm.Meta.fields + \
-            ['course' ]
+                 ['course']
 
 
 class CourseForm(FormSettings):
@@ -161,13 +161,23 @@ class FeedbackStudentForm(FormSettings):
         fields = ['feedback']
 
 
+class StudentSubjectForm(FormSettings):
+    def __init__(self, student, *args, **kwargs):
+        super(StudentSubjectForm, self).__init__(*args, **kwargs)
+        self.fields['subject'].queryset = Subject.objects.filter(course=student.course)
+
+    class Meta:
+        model = SudentSubjects
+        fields = ['subject']
+
+
 class StudentEditForm(CustomUserForm):
     def __init__(self, *args, **kwargs):
         super(StudentEditForm, self).__init__(*args, **kwargs)
 
     class Meta(CustomUserForm.Meta):
         model = Student
-        fields = CustomUserForm.Meta.fields 
+        fields = CustomUserForm.Meta.fields
 
 
 class StaffEditForm(CustomUserForm):
@@ -189,4 +199,5 @@ class EditResultForm(FormSettings):
 
     class Meta:
         model = StudentResult
-        fields = ['session_year', 'subject', 'student', 'test', 'exam']
+        fields = ['session_year', 'subject', 'student', 'mid2', 'mid1', 'assignment1', 'assignment2', 'assignment3',
+                  'assignment4']

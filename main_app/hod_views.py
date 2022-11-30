@@ -63,7 +63,7 @@ def admin_home(request):
         leave = LeaveReportStudent.objects.filter(student_id=student.id, status__in=[1]).count()
         student_attendance_present_list.append(attendance)
         student_attendance_leave_list.append(leave+absent)
-        student_name_list.append(student.admin.first_name)
+        student_name_list.append(student.custom_user.first_name)
 
     context = {
         'page_title': "Administrative Dashboard",
@@ -260,7 +260,7 @@ def edit_staff(request, staff_id):
             course = form.cleaned_data.get('course')
             passport = request.FILES.get('profile_pic') or None
             try:
-                user = CustomUser.objects.get(id=staff.admin.id)
+                user = CustomUser.objects.get(id=staff.custom_user.id)
                 user.username = username
                 user.email = email
                 if password is not None:
@@ -310,7 +310,7 @@ def edit_student(request, student_id):
             session = form.cleaned_data.get('session')
             passport = request.FILES.get('profile_pic') or None
             try:
-                user = CustomUser.objects.get(id=student.admin.id)
+                user = CustomUser.objects.get(id=student.custom_user.id)
                 if passport != None:
                     fs = FileSystemStorage()
                     filename = fs.save(passport.name, passport)
@@ -591,7 +591,7 @@ def admin_view_profile(request):
                 last_name = form.cleaned_data.get('last_name')
                 password = form.cleaned_data.get('password') or None
                 passport = request.FILES.get('profile_pic') or None
-                custom_user = admin.admin
+                custom_user = admin.custom_user
                 if password != None:
                     custom_user.set_password(password)
                 if passport != None:
@@ -644,7 +644,7 @@ def send_student_notification(request):
                 'click_action': reverse('student_view_notification'),
                 'icon': static('dist/img/AdminLTELogo.png')
             },
-            'to': student.admin.fcm_token
+            'to': student.custom_user.fcm_token
         }
         headers = {'Authorization':
                    'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
@@ -671,7 +671,7 @@ def send_staff_notification(request):
                 'click_action': reverse('staff_view_notification'),
                 'icon': static('dist/img/AdminLTELogo.png')
             },
-            'to': staff.admin.fcm_token
+            'to': staff.custom_user.fcm_token
         }
         headers = {'Authorization':
                    'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',

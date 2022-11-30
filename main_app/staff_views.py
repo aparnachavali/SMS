@@ -1,9 +1,11 @@
 import json
 
+import requests
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import (HttpResponseRedirect, get_object_or_404,redirect, render)
+from django.shortcuts import (HttpResponseRedirect, get_object_or_404, redirect, render)
+from django.templatetags.static import static
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -26,7 +28,7 @@ def staff_home(request):
         subject_list.append(subject.name)
         attendance_list.append(attendance_count)
     context = {
-        'page_title': 'Instructor Panel - ' + str(staff.admin.last_name) + ' (' + str(staff.course) + ')',
+        'page_title': 'Instructor Panel - ' + str(staff.custom_user.last_name) + ' (' + str(staff.course) + ')',
         'total_students': total_students,
         'total_attendance': total_attendance,
         'total_leave': total_leave,
@@ -57,15 +59,16 @@ def get_students(request):
     try:
         subject = get_object_or_404(Subject, id=subject_id)
         session = get_object_or_404(Session, id=session_id)
-        students = Student.objects.filter(
-            course_id=subject.course.id, session=session)
+        student_subjects = SudentSubjects.objects.filter(subject=subject)
+
         student_data = []
-        for student in students:
-            data = {
-                    "id": student.id,
-                    "name": student.admin.last_name + " " + student.admin.first_name
-                    }
-            student_data.append(data)
+        for ss in student_subjects:
+            if ss.student.session == session:
+                data = {
+                    "id": ss.student.id,
+                    "name": ss.student.custom_user.last_name + " " + ss.student.custom_user.first_name
+                }
+                student_data.append(data)
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
     except Exception as e:
         return e
@@ -86,7 +89,8 @@ def save_attendance(request):
 
         for student_dict in students:
             student = get_object_or_404(Student, id=student_dict.get('id'))
-            attendance_report = AttendanceReport(student=student, attendance=attendance, status=student_dict.get('status'))
+            attendance_report = AttendanceReport(student=student, attendance=attendance,
+                                                 status=student_dict.get('status'))
             attendance_report.save()
     except Exception as e:
         return None
@@ -115,8 +119,8 @@ def get_student_attendance(request):
         attendance_data = AttendanceReport.objects.filter(attendance=date)
         student_data = []
         for attendance in attendance_data:
-            data = {"id": attendance.student.admin.id,
-                    "name": attendance.student.admin.last_name + " " + attendance.student.admin.first_name,
+            data = {"id": attendance.student.custom_user.id,
+                    "name": attendance.student.custom_user.last_name + " " + attendance.student.custom_user.first_name,
                     "status": attendance.status}
             student_data.append(data)
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
@@ -193,7 +197,7 @@ def staff_feedback(request):
 
 def staff_view_profile(request):
     staff = get_object_or_404(Instructor, admin=request.user)
-    form = StaffEditForm(request.POST or None, request.FILES or None,instance=staff)
+    form = StaffEditForm(request.POST or None, request.FILES or None, instance=staff)
     context = {'form': form, 'page_title': 'View/Update Profile'}
     if request.method == 'POST':
         try:
@@ -204,7 +208,7 @@ def staff_view_profile(request):
                 address = form.cleaned_data.get('address')
                 gender = form.cleaned_data.get('gender')
                 passport = request.FILES.get('profile_pic') or None
-                admin = staff.admin
+                admin = staff.custom_user
                 if password != None:
                     admin.set_password(password)
                 if passport != None:
@@ -266,19 +270,33 @@ def staff_add_result(request):
         try:
             student_id = request.POST.get('student_list')
             subject_id = request.POST.get('subject')
-            test = request.POST.get('test')
-            exam = request.POST.get('exam')
+            mid1 = request.POST.get('mid1')
+            mid2 = request.POST.get('mid2')
+            assignment1 = request.POST.get('assignment1')
+            assignment2 = request.POST.get('assignment2')
+            assignment3 = request.POST.get('assignment3')
+            assignment4 = request.POST.get('assignment4')
             student = get_object_or_404(Student, id=student_id)
             subject = get_object_or_404(Subject, id=subject_id)
             try:
                 data = StudentResult.objects.get(
                     student=student, subject=subject)
-                data.exam = exam
-                data.test = test
+                data.mid1 = mid1
+                data.mid2 = mid2
+                data.assignment1 = assignment1
+                data.assignment2 = assignment2
+                data.assignment3 = assignment3
+                data.assignment4 = assignment4
                 data.save()
                 messages.success(request, "Scores Updated")
             except:
-                result = StudentResult(student=student, subject=subject, test=test, exam=exam)
+                result = StudentResult(student=student, subject=subject)
+                result.mid1 = mid1
+                result.mid2 = mid2
+                result.assignment1 = assignment1
+                result.assignment2 = assignment2
+                result.assignment3 = assignment3
+                result.assignment4 = assignment4
                 result.save()
                 messages.success(request, "Scores Saved")
         except Exception as e:
@@ -295,9 +313,53 @@ def fetch_student_result(request):
         subject = get_object_or_404(Subject, id=subject_id)
         result = StudentResult.objects.get(student=student, subject=subject)
         result_data = {
-            'exam': result.exam,
-            'test': result.test
+            'mid1': result.mid1,
+            'mid2': result.mid2,
+            'assignment1': result.assignment1,
+            'assignment2': result.assignment2,
+            'assignment3': result.assignment3,
+            'assignment4': result.assignment4,
         }
         return HttpResponse(json.dumps(result_data))
     except Exception as e:
         return HttpResponse('False')
+
+
+def staff_notify_student(request):
+    staff = get_object_or_404(Instructor, admin=request.user)
+
+    student = CustomUser.objects.filter(user_type=3)
+    context = {
+        'page_title': "Send Notifications To Students",
+        'students': student
+    }
+    return render(request, "staff_template/student_notification.html", context)
+
+
+@csrf_exempt
+def staff_student_notification(request):
+    staff = get_object_or_404(Instructor, admin=request.user)
+    student_id = request.POST.get('student_id')
+    message = request.POST.get('message')
+    student = get_object_or_404(Student, admin_id=student_id)
+    try:
+        notification = StaffNotificationStudent()
+        notification.student = student
+        notification.staff = staff
+        notification.message = message
+        notification.sender = "staff"
+        notification.save()
+        return HttpResponse("True")
+    except Exception as e:
+        return HttpResponse("False")
+
+
+def staff_view_student_notification(request):
+    staff = get_object_or_404(Instructor, admin=request.user)
+    notifications = StaffNotificationStudent.objects.filter(staff=staff, sender="student")
+    context = {
+        'notifications': notifications,
+        'page_title': "View Notifications"
+    }
+    return render(request, "staff_template/staff_view_student_notification.html", context)
+

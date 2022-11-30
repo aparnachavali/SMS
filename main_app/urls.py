@@ -108,8 +108,14 @@ urlpatterns = [
     path("staff/result/add/", staff_views.staff_add_result, name='staff_add_result'),
     path("staff/result/edit/", EditResultView.as_view(),
          name='edit_student_result'),
+    path("staff_student_notification/", staff_views.staff_student_notification,
+         name='staff_student_notification'),
+    path("staff_notify_student", staff_views.staff_notify_student,
+         name='staff_notify_student'),
     path('staff/result/fetch/', staff_views.fetch_student_result,
          name='fetch_student_result'),
+    path("staff/view/student/notification/", staff_views.staff_view_student_notification,
+         name="staff_view_student_notification"),
 
 
 
@@ -127,7 +133,19 @@ urlpatterns = [
          name='student_fcmtoken'),
     path("student/view/notification/", student_views.student_view_notification,
          name="student_view_notification"),
+    path("student/view/staff/notification/", student_views.student_view_staff_notification,
+         name="student_view_staff_notification"),
     path('student/view/result/', student_views.student_view_result,
          name='student_view_result'),
+    path('student/add/subject/', student_views.student_add_subject,
+         name='student_add_subject'),
+    path("student_staff_notification/", student_views.student_staff_notification,
+         name='student_staff_notification'),
+    path("student/subjects/manage/", student_views.student_manage_subjects, name='student_manage_subjects'),
+    path("student_notify_staff", student_views.student_notify_staff,
+         name='student_notify_staff'),
+    path("student/subject/delete/<int:subject_id>", student_views.student_subject_delete,
+         name='student_subject_delete'),
+
 
 ]

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="a991cf2f-7d6f-47e5-b6a3-9c28de4af716" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/SMS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SMS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/EditResultView.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/EditResultView.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/hod_views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/hod_views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/staff_views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/staff_views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/student_views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/student_views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/templates/main_app/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/templates/main_app/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/templates/main_app/sidebar_template.html" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/templates/main_app/sidebar_template.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/templates/staff_template/edit_student_result.html" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/templates/staff_template/edit_student_result.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/templates/staff_template/staff_add_result.html" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/templates/staff_template/staff_add_result.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/templates/student_template/student_view_result.html" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/templates/student_template/student_view_result.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_app/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/student_management_system/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/student_management_system/settings.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2IFY159maNDKKmAl8sbMWF72bMo" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/aparn/Documents/SMS"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a991cf2f-7d6f-47e5-b6a3-9c28de4af716" name="Changes" comment="" />
+      <created>1669778579883</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1669778579883</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
