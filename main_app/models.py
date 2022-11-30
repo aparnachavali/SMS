@@ -58,7 +58,8 @@ class CustomUser(AbstractUser):
 
 class Admin(models.Model):
     custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-
+    def __str__(self):
+        return self.custom_user.last_name + ", " + self.custom_user.first_name
 
 class Course(models.Model):
     name = models.CharField(max_length=120)
@@ -107,7 +108,7 @@ class Section(models.Model):
             models.UniqueConstraint(fields=['subject', 'staff', 'session'], name='unique_section')
         ]
     def __str__(self):
-        return self.name
+        return self.subject + " " + self.staff + " " + self.session  
 
 class SectionTimeSlot(models.Model): 
     timeslot = models.TimeField(default='10:00', unique=True, verbose_name='time')
@@ -123,11 +124,15 @@ class SectionStudents(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
 
+class Attendance(models.Model):
+    section_timeslot = models.ForeignKey(SectionTimeSlot, on_delete=models.CASCADE)
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 class AttendanceReport(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    attendance = models.ForeignKey(SectionTimeSlot, on_delete=models.CASCADE)
-    date = models.DateField()
+    attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -209,7 +214,7 @@ class Assignment(models.Model):
 
 class StudentResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
     mid2 = models.FloatField(default=0, verbose_name="Mid 2")
     mid1 = models.FloatField(default=0, verbose_name="Mid 1")
     assignment1 = models.FloatField(default=0, verbose_name="Assignment 1")

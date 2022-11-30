@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views import View
 from django.contrib import messages
-from .models import Subject, Instructor, Student, StudentResult
+from .models import Section, Instructor, Student, StudentResult
 from .forms import EditResultForm
 from django.urls import reverse
 
@@ -10,7 +10,7 @@ class EditResultView(View):
     def get(self, request, *args, **kwargs):
         resultForm = EditResultForm()
         staff = get_object_or_404(Instructor, admin=request.user)
-        resultForm.fields['subject'].queryset = Subject.objects.filter(staff=staff)
+        resultForm.fields['section'].queryset = Section.objects.filter(staff=staff)
         context = {
             'form': resultForm,
             'page_title': "Edit Student's Result"
@@ -23,7 +23,7 @@ class EditResultView(View):
         if form.is_valid():
             try:
                 student = form.cleaned_data.get('student')
-                subject = form.cleaned_data.get('subject')
+                section = form.cleaned_data.get('section')
                 assignment1 = form.cleaned_data.get('assignment1')
                 assignment2 = form.cleaned_data.get('assignment2')
                 assignment3 = form.cleaned_data.get('assignment3')
@@ -31,7 +31,7 @@ class EditResultView(View):
                 mid1 = form.cleaned_data.get('mid1')
                 mid2 = form.cleaned_data.get('mid2')
                 # Validating
-                result = StudentResult.objects.get(student=student, subject=subject)
+                result = StudentResult.objects.get(student=student, section=section)
                 result.mid1 = mid1
                 result.mid2 = mid2
                 result.assignment1 = assignment1

@@ -54,21 +54,19 @@ def staff_take_attendance(request):
 
 @csrf_exempt
 def get_students(request):
-    subject_id = request.POST.get('subject')
-    session_id = request.POST.get('session')
+    section_id = request.POST.get('section')
     try:
-        subject = get_object_or_404(Subject, id=subject_id)
-        session = get_object_or_404(Session, id=session_id)
-        student_subjects = SudentSubjects.objects.filter(subject=subject)
+        section = get_object_or_404(Section, id=section_id)
+        
+        studentsections = SectionStudents.objects.filter(section=section)
 
         student_data = []
-        for ss in student_subjects:
-            if ss.student.session == session:
-                data = {
-                    "id": ss.student.id,
-                    "name": ss.student.custom_user.last_name + " " + ss.student.custom_user.first_name
-                }
-                student_data.append(data)
+        for ss in studentsections:
+            data = {
+                "id": ss.student.id,
+                "name": ss.student.custom_user.last_name + " " + ss.student.custom_user.first_name
+            }
+            student_data.append(data)
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
     except Exception as e:
         return e
@@ -307,11 +305,11 @@ def staff_add_result(request):
 @csrf_exempt
 def fetch_student_result(request):
     try:
-        subject_id = request.POST.get('subject')
+        section_id = request.POST.get('section')
         student_id = request.POST.get('student')
         student = get_object_or_404(Student, id=student_id)
-        subject = get_object_or_404(Subject, id=subject_id)
-        result = StudentResult.objects.get(student=student, subject=subject)
+        section = get_object_or_404(Section, id=section_id)
+        result = StudentResult.objects.get(student=student, section=section)
         result_data = {
             'mid1': result.mid1,
             'mid2': result.mid2,

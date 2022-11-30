@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from .EmailBackend import EmailBackend
-from .models import Attendance, Session, Subject
+from .models import Section, Subject, SectionTimeSlot, Attendance
 
 # Create your views here.
 
@@ -27,7 +27,7 @@ def doLogin(request, **kwargs):
     if request.method != 'POST':
         return HttpResponse("<h4>Denied</h4>")
     else:
-        #Google recaptcha
+        # Google recaptcha
         captcha_token = request.POST.get('g-recaptcha-response')
         captcha_url = "https://www.google.com/recaptcha/api/siteverify"
         captcha_key = "6LfdT5YiAAAAAFo_YRtPJH7LNSGVpk8_GfiWWgY7"
@@ -45,9 +45,10 @@ def doLogin(request, **kwargs):
         except:
             messages.error(request, 'Captcha could not be verified. Try Again')
             return redirect('/')
-        
-        #Authenticate
-        user = EmailBackend.authenticate(request, username=request.POST.get('email'), password=request.POST.get('password'))
+
+        # Authenticate
+        user = EmailBackend.authenticate(request, username=request.POST.get(
+            'email'), password=request.POST.get('password'))
         if user != None:
             login(request, user)
             if user.user_type == '1':
@@ -61,7 +62,6 @@ def doLogin(request, **kwargs):
             return redirect("/")
 
 
-
 def logout_user(request):
     if request.user != None:
         logout(request)
@@ -69,20 +69,35 @@ def logout_user(request):
 
 
 @csrf_exempt
-def get_attendance(request):
-    subject_id = request.POST.get('subject')
-    session_id = request.POST.get('session')
+def get_timeslots(request):
+    section_id = request.POST.get('section')
     try:
-        subject = get_object_or_404(Subject, id=subject_id)
-        session = get_object_or_404(Session, id=session_id)
-        attendance = Attendance.objects.filter(subject=subject, session=session)
+        section = get_object_or_404(Section, id=section_id)
+        timeslots = SectionTimeSlot.objects.filter(section_id=section_id)
+        timeslot_list = []
+        for ts in timeslots:
+            data = {
+                "id": ts.id,
+                "timeslot": str(ts.day + " " + ts.timeslot),
+            }
+            timeslot_list.append(data)
+        return JsonResponse(json.dumps(timeslot_list), safe=False)
+    except Exception as e:
+        return None
+
+
+@csrf_exempt
+def get_attendance(request):
+    timeslot_id = request.POST.get('timeslot_id')
+    try:
+        attendance = Attendance.objects.filter(section_timeslot_id=timeslot_id)
         attendance_list = []
         for attd in attendance:
             data = {
-                    "id": attd.id,
-                    "attendance_date": str(attd.date),
-                    "session": attd.session.id
-                    }
+                "id": attd.id,
+                "attendance_date": str(attd.date),
+                "session": attd.session.id
+            }
             attendance_list.append(data)
         return JsonResponse(json.dumps(attendance_list), safe=False)
     except Exception as e:
