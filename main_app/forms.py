@@ -103,6 +103,23 @@ class SubjectForm(FormSettings):
         # fields = ['name', 'staff', 'course', 'timeslot']
         fields = '__all__'
 
+class SectionForm(FormSettings):
+
+    def __init__(self, *args, **kwargs):
+        super(SubjectForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Section
+        fields = '__all__'
+
+class SectionTimeSlotForm(FormSettings):
+
+    def __init__(self, *args, **kwargs):
+        super(SubjectForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = SectionTimeSlot
+        fields = ['timeslot', 'day', 'section']
 
 class SessionForm(FormSettings):
     def __init__(self, *args, **kwargs):
@@ -167,7 +184,7 @@ class StudentSubjectForm(FormSettings):
         self.fields['subject'].queryset = Subject.objects.filter(course=student.course)
 
     class Meta:
-        model = SudentSubjects
+        model = SectionStudents
         fields = ['subject']
 
 

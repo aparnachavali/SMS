@@ -58,8 +58,10 @@ class CustomUser(AbstractUser):
 
 class Admin(models.Model):
     custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+
     def __str__(self):
         return self.custom_user.last_name + ", " + self.custom_user.first_name
+
 
 class Course(models.Model):
     name = models.CharField(max_length=120)
@@ -72,15 +74,18 @@ class Course(models.Model):
 
 class Student(models.Model):
     custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.DO_NOTHING, null=True, blank=False)
-    session = models.ForeignKey(AcademicSession, on_delete=models.DO_NOTHING, null=True)
+    course = models.ForeignKey(
+        Course, on_delete=models.DO_NOTHING, null=True, blank=False)
+    session = models.ForeignKey(
+        AcademicSession, on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
         return self.custom_user.last_name + ", " + self.custom_user.first_name
 
 
 class Instructor(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.DO_NOTHING, null=True, blank=False)
+    course = models.ForeignKey(
+        Course, on_delete=models.DO_NOTHING, null=True, blank=False)
     custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -96,6 +101,7 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
+
 class Section(models.Model):
     staff = models.ForeignKey(Instructor, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
@@ -105,15 +111,28 @@ class Section(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['subject', 'staff', 'session'], name='unique_section')
+            models.UniqueConstraint(
+                fields=['subject', 'staff', 'session'], name='unique_section')
         ]
+
     def __str__(self):
-        return self.subject + " " + self.staff + " " + self.session  
+        return self.subject + " " + self.staff + " " + self.session
+
+
+DAY_CHOICES = (
+    ('Mon','MON'),
+    ('Tue', 'TUE'),
+    ('Wed','WED'),
+    ('Thu','THU'),
+    ('Fri','FRI'),
+)
 
 class SectionTimeSlot(models.Model): 
-    timeslot = models.TimeField(default='10:00', unique=True, verbose_name='time')
-    day = models.CharField(default="Mon", max_length=3)
+    timeslot = models.TimeField(default='10:00', verbose_name='time')
+    day = models.CharField(default="Mon", max_length=3, choices=DAY_CHOICES)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [

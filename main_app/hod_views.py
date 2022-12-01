@@ -203,6 +203,67 @@ def add_subject(request):
             messages.error(request, "Fill Form Properly")
     return render(request, 'hod_template/add_subject_template.html', context)
 
+def add_section(request):
+    form = SectionForm(request.POST or None)
+    context = {
+        'form': form,
+        'page_title': 'Add Section'
+    }
+    if request.method == 'POST':
+        if form.is_valid():
+            staff = form.cleaned_data.get('staff')
+            subject = form.cleaned_data.get('subject')
+            session = form.cleaned_data.get('session')
+            try:
+                non_unique = Section.objects.filter(staff=staff, subject=subject, session=session)
+                if len(non_unique) > 0:
+                    messages.error(request, "Section already exists")
+                    return redirect(reverse('add_section'))
+                section = Section()
+                section.staff = staff
+                section.subject = subject
+                section.session = session
+                section.save()
+                messages.success(request, "Successfully Added")
+                return redirect(reverse('add_section'))
+
+            except Exception as e:
+                messages.error(request, "Could Not Add " + str(e))
+        else:
+            messages.error(request, "Fill Form Properly")
+    return render(request, 'hod_template/add_section_template.html', context)
+
+def add_section_timeslot(request):
+    form = SectionTimeSlotForm(request.POST or None)
+    context = {
+        'form': form,
+        'page_title': 'Add Section Timeslot'
+    }
+    if request.method == 'POST':
+        if form.is_valid():
+            section = form.cleaned_data.get('section')
+            day = form.cleaned_data.get('day')
+            timeslot = form.cleaned_data.get('timeslot')
+            try:
+                non_unique = SectionTimeSlot.objects.filter(timeslot=timeslot, day=day, section=section)
+                if len(non_unique) > 0:
+                    messages.error(request, "Timeslot has a conflict")
+                    return redirect(reverse('add_section_timeslot'))
+                section_timeslot = SectionTimeSlot()
+                section_timeslot.section = section
+                section_timeslot.day = day
+                section_timeslot.timeslot = timeslot
+                section_timeslot.save()
+                messages.success(request, "Successfully Added")
+                return redirect(reverse('add_section_timeslot'))
+
+            except Exception as e:
+                messages.error(request, "Could Not Add " + str(e))
+        else:
+            messages.error(request, "Fill Form Properly")
+    return render(request, 'hod_template/add_section_timeslot_template.html', context)
+
+
 
 def manage_staff(request):
     allStaff = CustomUser.objects.filter(user_type=2)
@@ -239,6 +300,13 @@ def manage_subject(request):
     }
     return render(request, "hod_template/manage_subject.html", context)
 
+def manage_section(request):
+    sections = Section.objects.all()
+    context = {
+        'sections': sections,
+        'page_title': 'Manage Sections'
+    }
+    return render(request, "hod_template/manage_sections.html", context)
 
 def edit_staff(request, staff_id):
     staff = get_object_or_404(Instructor, custom_user_id=staff_id)
@@ -386,6 +454,34 @@ def edit_subject(request, subject_id):
         else:
             messages.error(request, "Fill Form Properly")
     return render(request, 'hod_template/edit_subject_template.html', context)
+
+
+def edit_section(request, section_id):
+    instance = get_object_or_404(Section, id=section_id)
+    form = SectionForm(request.POST or None, instance=instance)
+    context = {
+        'form': form,
+        'section_id': section_id,
+        'page_title': 'Edit Section'
+    }
+    if request.method == 'POST':
+        if form.is_valid():
+            staff = form.cleaned_data.get('staff')
+            subject = form.cleaned_data.get('subject')
+            session = form.cleaned_data.get('session')
+            try:
+                section = Section.objects.get(id=section_id)
+                section.staff = staff
+                section.subject = subject
+                section.session = session
+                section.save()
+                messages.success(request, "Successfully Updated")
+                return redirect(reverse('edit_section', args=[section_id]))
+            except Exception as e:
+                messages.error(request, "Could Not Add " + str(e))
+        else:
+            messages.error(request, "Fill Form Properly")
+    return render(request, 'hod_template/edit_section_template.html', context)
 
 
 def add_session(request):
@@ -707,6 +803,11 @@ def delete_subject(request, subject_id):
     messages.success(request, "Subject deleted successfully!")
     return redirect(reverse('manage_subject'))
 
+def delete_section(request, section_id):
+    section = get_object_or_404(Section, id=section_id)
+    section.delete()
+    messages.success(request, "Section deleted successfully!")
+    return redirect(reverse('manage_section'))
 
 def delete_session(request, session_id):
     session = get_object_or_404(AcademicSession, id=session_id)

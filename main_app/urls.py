@@ -82,6 +82,16 @@ urlpatterns = [
          hod_views.edit_course, name='edit_course'),
     path("subject/edit/<int:subject_id>",
          hod_views.edit_subject, name='edit_subject'),
+    path("section/add/",
+         hod_views.add_section, name='add_section'),
+    path("section-timeslot/add/",
+         hod_views.add_section_timeslot, name='add_section_timeslot'),
+    path("section/manage/",
+         hod_views.manage_section, name='manage_section'),
+    path("section/edit/<int:section_id>",
+         hod_views.edit_section, name='edit_section'),
+    path("section/delete/<int:section_id>",
+         hod_views.delete_section, name='delete_section'),
 
 
     # Staff
@@ -141,7 +151,8 @@ urlpatterns = [
          name='student_add_subject'),
     path("student_staff_notification/", student_views.student_staff_notification,
          name='student_staff_notification'),
-    path("student/subjects/manage/", student_views.student_manage_subjects, name='student_manage_subjects'),
+    path("student/subjects/manage/", student_views.student_manage_subjects,
+         name='student_manage_subjects'),
     path("student_notify_staff", student_views.student_notify_staff,
          name='student_notify_staff'),
     path("student/subject/delete/<int:subject_id>", student_views.student_subject_delete,
