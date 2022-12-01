@@ -9,7 +9,7 @@ from django.urls import reverse
 class EditResultView(View):
     def get(self, request, *args, **kwargs):
         resultForm = EditResultForm()
-        staff = get_object_or_404(Instructor, admin=request.user)
+        staff = get_object_or_404(Instructor, custom_user=request.user)
         resultForm.fields['section'].queryset = Section.objects.filter(staff=staff)
         context = {
             'form': resultForm,
