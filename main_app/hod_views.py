@@ -1,3 +1,4 @@
+import datetime
 import json
 import requests
 from django.contrib import messages
@@ -21,13 +22,12 @@ def admin_home(request):
     total_subject = subjects.count()
     total_course = Course.objects.all().count()
     attendance_list = Attendance.objects.all().count()
-    total_attendance = attendance_list.count()
     attendance_list = []
     subject_list = []
     for subject in subjects:
         sections = Section.objects.filter(subject=subject)
-        section_timeslot = SectionTimeSlot.objects.filter(sections__in=sections)
-        attendance_count = Attendance.objects.filter(section_timeslot=section_timeslot).count()
+        # section_timeslot = SectionTimeSlot.objects.filter(sections__in=sections)
+        attendance_count = Attendance.objects.filter(section__in=sections).count()
         subject_list.append(subject.name[:7])
         attendance_list.append(attendance_count)
 
@@ -107,10 +107,8 @@ def add_staff(request):
                     email=email, password=password, user_type=2, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
                 user.address = address
-                instructer = Instructor()
-                instructer.custom_user = user
-                instructer.course = course
-                instructer.save()
+                user.instructor.course = course
+                user.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_staff'))
             except Exception as e:
@@ -143,11 +141,9 @@ def add_student(request):
                     email=email, password=password, user_type=3, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
                 user.address = address
-                student = Student()
-                student.session = session
-                student.course = course
-                student.custom_user = user
-                student.save()
+                user.student.session = session
+                user.student.course = course
+                user.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_student'))
             except Exception as e:
@@ -240,6 +236,7 @@ def add_section_timeslot(request):
         'page_title': 'Add Section Timeslot'
     }
     if request.method == 'POST':
+        
         if form.is_valid():
             section = form.cleaned_data.get('section')
             day = form.cleaned_data.get('day')
@@ -260,7 +257,7 @@ def add_section_timeslot(request):
             except Exception as e:
                 messages.error(request, "Could Not Add " + str(e))
         else:
-            messages.error(request, "Fill Form Properly")
+            messages.error(request, "Unable to add the time slot, check if there is a conflict")
     return render(request, 'hod_template/add_section_timeslot_template.html', context)
 
 
@@ -302,11 +299,24 @@ def manage_subject(request):
 
 def manage_section(request):
     sections = Section.objects.all()
+    section_data = []
+    for section in sections:
+        section_timeslots = SectionTimeSlot.objects.filter(section=section)
+        timeslot = ""
+        for ts in section_timeslots:
+            t = datetime.time.fromisoformat(str(ts.timeslot))
+            timeslot += t.strftime("%H:%M") + " " + ts.day + ", " 
+        timeslot = timeslot[:-2]
+        data = {
+            'section': section,
+            'timeslot': timeslot
+        }
+        section_data.append(data)
     context = {
-        'sections': sections,
+        'section_data': section_data,
         'page_title': 'Manage Sections'
     }
-    return render(request, "hod_template/manage_sections.html", context)
+    return render(request, "hod_template/manage_section.html", context)
 
 def edit_staff(request, staff_id):
     staff = get_object_or_404(Instructor, custom_user_id=staff_id)
@@ -353,7 +363,7 @@ def edit_staff(request, staff_id):
             messages.error(request, "Please fil form properly")
     else:
         user = CustomUser.objects.get(id=staff_id)
-        staff = Instructor.objects.get(admin_id=user.id)
+        staff = Instructor.objects.get(custom_user_id=user.id)
         return render(request, "hod_template/edit_staff_template.html", context)
 
 

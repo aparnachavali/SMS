@@ -40,7 +40,7 @@
             </div>
           </div>
           <!-- /.card -->
-          <div class="card card-dark">
+          <div class="card card-dark" id="assignment_section">
             <div class="card-header">
               <h3 class="card-title">Assignments</h3>
             </div>
@@ -69,7 +69,7 @@
   <script>
     $(document).ready(function () {
 
-       
+        $("#assignment_section").hide()
         $("#fetch_student").click(function () {
             var section = $("#section").val()
             $("#student_data").html(null)
@@ -120,6 +120,7 @@
                   if (json_data.length < 1) {
                       alert("No data to display")
                   } else {
+                    $("#assignment_section").show()
                     var table_data = ""
                     for (key in json_data) {
                       table_data += "<tr>"

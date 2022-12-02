@@ -92,7 +92,7 @@ def get_attendance(request):
     session_id = request.POST.get('session')
     try:
         sections = Section.objects.filter(subject_id=subject_id, session_id=session_id)
-        attendance = Attendance.objects.filter(sections__in=sections)
+        attendance = Attendance.objects.filter(section__in=sections)
         attendance_list = []
         for attd in attendance:
             data = {
@@ -103,6 +103,7 @@ def get_attendance(request):
             attendance_list.append(data)
         return JsonResponse(json.dumps(attendance_list), safe=False)
     except Exception as e:
+        print(e)
         return None
 
 

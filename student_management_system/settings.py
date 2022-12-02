@@ -98,7 +98,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'student-management',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'password',
         'HOST':'localhost',#'sms-database.cxcfvqmerwum.us-east-2.rds.amazonaws.com',
         'PORT': '3306',
         'OPTIONS': {

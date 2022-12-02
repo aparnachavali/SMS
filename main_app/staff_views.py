@@ -18,9 +18,14 @@ days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
 def staff_home(request):
     staff = get_object_or_404(Instructor, custom_user=request.user)
-    total_students = Student.objects.filter(course=staff.course).count()
     total_leave = LeaveReportStaff.objects.filter(staff=staff).count()
     sections = Section.objects.filter(staff=staff)
+    students = set()
+    for section in sections:
+        section_students = SectionStudents.objects.filter(section=section)
+        for ss in section_students:
+            students.add(ss.student.id)
+    total_students = len(students)
     total_sections = sections.count()
     attendance_list = Attendance.objects.filter(section__in=sections)
     total_attendance = attendance_list.count()
@@ -28,7 +33,7 @@ def staff_home(request):
     sections_list = []
     for section in sections:
         attendance_count = Attendance.objects.filter(section=section).count()
-        sections_list.append(section.subject + " " + section.session)
+        sections_list.append(str(section.subject) + " " + str(section.session))
         attendance_list.append(attendance_count)
     context = {
         'page_title': 'Instructor Panel - ' + str(staff.custom_user.last_name) + ' (' + str(staff.course) + ')',

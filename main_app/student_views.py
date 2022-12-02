@@ -1,6 +1,6 @@
 import json
 import math
-from datetime import datetime
+from datetime import datetime, time
 
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
@@ -16,7 +16,7 @@ from .models import *
 
 def student_home(request):
     student = get_object_or_404(Student, custom_user=request.user)
-    total_subject = Subject.objects.filter(course=student.course).count()
+    total_subject = SectionStudents.objects.filter(student=student).count()
     total_attendance = AttendanceReport.objects.filter(student=student).count()
     total_present = AttendanceReport.objects.filter(student=student, status__in=[True]).count()
     if total_attendance == 0:  # Don't divide. DivisionByZero
@@ -69,6 +69,7 @@ def student_view_attendance(request):
         section_id = request.POST.get('section')
         start = request.POST.get('start_date')
         end = request.POST.get('end_date')
+        print("sectionid: "+ str(section_id))
         try:
             section = get_object_or_404(Section, id=section_id)
             start_date = datetime.strptime(start, "%Y-%m-%d")
@@ -86,6 +87,7 @@ def student_view_attendance(request):
                 json_data.append(data)
             return JsonResponse(json.dumps(json_data), safe=False)
         except Exception as e:
+            print(e)
             return None
 
 
@@ -195,7 +197,7 @@ def student_view_notification(request):
     notifications = NotificationStudent.objects.filter(student=student)
     context = {
         'notifications': notifications,
-        'page_title': "View Notifications"
+        'page_title': "View Admin Notifications"
     }
     return render(request, "student_template/student_view_notification.html", context)
 
@@ -205,7 +207,7 @@ def student_view_staff_notification(request):
     notifications = StaffNotificationStudent.objects.filter(student=student, sender="staff")
     context = {
         'notifications': notifications,
-        'page_title': "View Notifications"
+        'page_title': "View Staff Notifications"
     }
     return render(request, "student_template/student_view_staff_notification.html", context)
 
@@ -221,7 +223,7 @@ def student_view_result(request):
 
 
 def student_add_subject(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     form = StudentSubjectForm(student, request.POST)
     context = {'form': form,
                'page_title': 'Add subject'
@@ -234,7 +236,7 @@ def student_add_subject(request):
                 if existing_sections.count() >= 3:
                     messages.error(request, "Cannot to add more than 3 subjects")
                     return redirect(reverse('student_add_subject'))
-                section = get_object_or_404(Section, section_id=section)
+                section = get_object_or_404(Section, id=section.id)
                 ss = SectionStudents()
                 ss.student = student
                 ss.section = section
@@ -257,11 +259,12 @@ def student_manage_subjects(request):
         section_timeslots = SectionTimeSlot.objects.filter(section=ss.section)
         timeslot = ""
         for ts in section_timeslots:
-            timeslot += ts.timeslot + " " + ts.day + ", " 
+            t = time.fromisoformat(str(ts.timeslot))
+            timeslot += t.strftime("%H:%M") + " " + ts.day + ", "
+        timeslot = timeslot[:-2] 
         data = {
             'section': ss.section,
             'timeslot': timeslot
-
         }
         section_data.append(data)
     context = {

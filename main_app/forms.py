@@ -28,7 +28,7 @@ class CustomUserForm(FormSettings):
         super(CustomUserForm, self).__init__(*args, **kwargs)
 
         if kwargs.get('instance'):
-            instance = kwargs.get('instance').admin.__dict__
+            instance = kwargs.get('instance').custom_user.__dict__
             self.fields['password'].required = False
             for field in CustomUserForm.Meta.fields:
                 self.fields[field].initial = instance.get(field)
@@ -109,7 +109,7 @@ class SubjectForm(FormSettings):
 class SectionForm(FormSettings):
 
     def __init__(self, *args, **kwargs):
-        super(SubjectForm, self).__init__(*args, **kwargs)
+        super(SectionForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Section
@@ -119,7 +119,7 @@ class SectionForm(FormSettings):
 class SectionTimeSlotForm(FormSettings):
 
     def __init__(self, *args, **kwargs):
-        super(SubjectForm, self).__init__(*args, **kwargs)
+        super(SectionTimeSlotForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = SectionTimeSlot

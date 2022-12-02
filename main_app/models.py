@@ -116,15 +116,15 @@ class Section(models.Model):
         ]
 
     def __str__(self):
-        return self.subject + " " + self.staff + " " + self.session
+        return str(self.subject) + ";  Prof: " + str(self.staff) + ";  Session: " + str(self.session)
 
 
 DAY_CHOICES = (
-    ('Mon','MON'),
-    ('Tue', 'TUE'),
-    ('Wed','WED'),
-    ('Thu','THU'),
-    ('Fri','FRI'),
+    ('Mon','Mon'),
+    ('Tue', 'Tue'),
+    ('Wed','Wed'),
+    ('Thu','Thu'),
+    ('Fri','Fri'),
 )
 
 class SectionTimeSlot(models.Model): 
@@ -248,11 +248,11 @@ class StudentResult(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if instance.user_type == 1:
-            Admin.objects.create(admin=instance)
+            Admin.objects.create(custom_user=instance)
         if instance.user_type == 2:
-            Instructor.objects.create(admin=instance)
+            Instructor.objects.create(custom_user=instance)
         if instance.user_type == 3:
-            Student.objects.create(admin=instance)
+            Student.objects.create(custom_user=instance)
 
 
 @receiver(post_save, sender=CustomUser)

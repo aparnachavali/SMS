@@ -41,8 +41,8 @@
                         <!-- form start -->
                         <div class="card-body">
                             <div class="form-group">
-                                <label>Select Subject</label>
-                                <select id="subject" class="form-control">
+                                <label>Select Section</label>
+                                <select id="section" class="form-control">
                                     <option value="">
                                         ----
                                     </option>
@@ -99,7 +99,7 @@
             var start_date = $("#start_date").val()
             var end_date = $("#end_date").val()
             if (section.length  == 0 || end_date.length ==0 ||start_date.length == 0){
-                alert("Please Select Subject and Date Range");
+                alert("Please Select Section and Date Range");
                 return false;
             }
             $("#attendance_data").html(null)
@@ -107,14 +107,14 @@
                 url: "{% url 'student_view_attendance' %}",
                 type: 'POST',
                 data: {
-                    subject: section,
+                    section: section,
                     start_date: start_date,
                     end_date:end_date
                 }
             }).done(function (response) {
                 var json_data = JSON.parse(response)
                 if (json_data.length < 1) {
-                    $("#attendance_data").html("<div class='col-md-12 alert alert-danger'>No Data For Specified Parameters</div>")
+                    $("#attendance_data").html("<div class='col-md-12 alert alert-danger'>No Attendance recorded</div>")
 
                 } else {
                     var div_data = ""

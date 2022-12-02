@@ -324,6 +324,16 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    {% url 'staff_view_assignment' as staff_view_assignment %}
+                                    <a href="{{ staff_view_assignment }}"
+                                       class="nav-link {% if staff_view_assignment == request.path %} active{% endif %}">
+                                        <i class="nav-icon fas fa-th"></i>
+                                        <p>
+                                           View Assignments
+                                        </p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     {% url 'staff_take_attendance' as staff_take_attendance %}
                                     <a href="{{ staff_take_attendance }}"
                                        class="nav-link {% if staff_take_attendance == request.path %} active{% endif %}">
@@ -349,7 +359,7 @@
                                        class="nav-link {% if staff_view_notification == request.path %} active{% endif %}">
                                         <i class="nav-icon fas fa-bell"></i>
                                         <p>
-                                            View Notifications
+                                            View Admin Notifications
                                         </p>
                                     </a>
                                 </li>
@@ -477,7 +487,7 @@
                                                    class="nav-link {% if student_view_notification == request.path %} active{% endif %}">
                                                     <i class="nav-icon fas fa-bell"></i>
                                                     <p>
-                                                        View Notifications
+                                                        View Admin Notifications
                                                     </p>
                                                 </a>
                                             </li>
