@@ -226,7 +226,7 @@ class Assignment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     name = models.TextField()
-    file_name = models.TextField()
+    file_name = models.FileField(upload_to=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

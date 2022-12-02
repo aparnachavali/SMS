@@ -33,10 +33,15 @@
             <!-- /.card-body -->
             <div class="card-footer">
               <button type="button" id='fetch_student' class="btn btn-success btn-block">Fetch Students</button>
+            </div>
+          </div>
+          <div class="card card-dark" id="student_card">
+            <div class="card-body">
               <div class="form-group" id="student_data">
-                <hr/>
-                <div class='form-group'></div>
               </div>
+            </div>
+            <div class="card-footer">
+              <button type="button" id='get_assignments' class="btn btn-success btn-block">Get Assignments</button>
             </div>
           </div>
           <!-- /.card -->
@@ -55,7 +60,7 @@
                     <th>File</th>
                   </tr>
                 </thead>
-                <tbody id="assignments">
+                <tbody id="assignments_table">
                 </tbody>
               </table>
             </div>
@@ -70,6 +75,7 @@
     $(document).ready(function () {
 
         $("#assignment_section").hide()
+        $("#student_card").hide()
         $("#fetch_student").click(function () {
             var section = $("#section").val()
             $("#student_data").html(null)
@@ -88,15 +94,16 @@
                 if (json_data.length < 1) {
                     alert("No data to display")
                 } else {
-                    var div_data = "<div class='form-group'><div class='row'><label>Student</label> <div class='col-lg-3'>"
+                    $("#student_card").show()
+                    var div_data = "<label>Student</label>"
                     div_data += "<select name='student' class='form-control' id='student'>"
                     div_data +=  "<option value=''>----</option>"
                       for (key in json_data) {
                         div_data += "<option value='"+json_data[key]['id']+"'>"+json_data[key]['name']+"</option>"
                     }
                     div_data += "</select>"
-                    div_data += "</div></div></div>"
-                    div_data += "<div class='form-group'><button id='get_assignments' class='btn btn-success' type='button'Get Assignments</button></div>"
+                    //div_data += "</div>"
+                    // div_data += "<div class='form-group'><button id='get_assignments' class='btn btn-success' type='button'>Get Assignments</button></div>"
                     $("#student_data").html(div_data)
                 }
             }).fail(function (response) {
@@ -105,14 +112,12 @@
 
 
             $(document).on('click', '#get_assignments', function () {
-                $(this).attr("disabled","disabled")
-                $(this).text("Getting Assignments Data...")
                 var student = $("#student").val()
                 $.ajax({
                     url: "{% url 'get_assignments' %}",
                     type: 'POST',
                     data: {
-                        student_id: student_id,
+                        student_id: student,
                         section: section
                     }
                 }).done(function (response) {
@@ -123,15 +128,16 @@
                     $("#assignment_section").show()
                     var table_data = ""
                     for (key in json_data) {
+                      var file_url =  json_data[key]['url'].replace("/media", "")
                       table_data += "<tr>"
-                      table_data += "<td>"+key+"</td>"
+                      table_data += "<td>"+(key + 1)+"</td>"
                       table_data += "<td>"+json_data[key]['name']+"</td>"
                       table_data += "<td>"
-                      table_data += "a href="+json_data[key]['file_name']+" class='btn btn-info' download>Download</a>"
+                      table_data += "<a href="+file_url+" download class='btn btn-info' >Download</a>"
                       table_data += "</td>"
                       table_data += "</tr>"
                     }
-                    $("#assignemnts").html(table_data)
+                    $("#assignments_table").html(table_data)
                   }
                     
                 }).fail(function (response) {

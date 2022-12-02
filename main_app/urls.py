@@ -162,9 +162,14 @@ urlpatterns = [
          name='student_manage_subjects'),
     path("student_notify_staff", student_views.student_notify_staff,
          name='student_notify_staff'),
-    #
     path("student/subject/delete/<int:subject_id>", student_views.student_subject_delete,
          name='student_subject_delete'),
-
-
+    path("student/add/assignment", student_views.student_add_assignment,
+         name='student_add_assignment'),
+    path("student/assignments/manage/", student_views.student_manage_assignments,
+         name='student_manage_assignments'),
+    path("student/get_assignments", student_views.student_get_assignments,
+         name='student_get_assignments'),
+    path("student/assignment/delete/<int:assignment_id>", student_views.student_assignment_delete,
+         name='student_assignment_delete'),
 ]

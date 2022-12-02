@@ -18,7 +18,8 @@ def student_home(request):
     student = get_object_or_404(Student, custom_user=request.user)
     total_subject = SectionStudents.objects.filter(student=student).count()
     total_attendance = AttendanceReport.objects.filter(student=student).count()
-    total_present = AttendanceReport.objects.filter(student=student, status__in=[True]).count()
+    total_present = AttendanceReport.objects.filter(
+        student=student, status__in=[True]).count()
     if total_attendance == 0:  # Don't divide. DivisionByZero
         percent_absent = percent_present = 0
     else:
@@ -69,7 +70,7 @@ def student_view_attendance(request):
         section_id = request.POST.get('section')
         start = request.POST.get('start_date')
         end = request.POST.get('end_date')
-        print("sectionid: "+ str(section_id))
+        print("sectionid: " + str(section_id))
         try:
             section = get_object_or_404(Section, id=section_id)
             start_date = datetime.strptime(start, "%Y-%m-%d")
@@ -175,7 +176,8 @@ def student_view_profile(request):
             else:
                 messages.error(request, "Invalid Data Provided")
         except Exception as e:
-            messages.error(request, "Error Occured While Updating Profile " + str(e))
+            messages.error(
+                request, "Error Occured While Updating Profile " + str(e))
 
     return render(request, "student_template/student_view_profile.html", context)
 
@@ -204,7 +206,8 @@ def student_view_notification(request):
 
 def student_view_staff_notification(request):
     student = get_object_or_404(Student, custom_user=request.user)
-    notifications = StaffNotificationStudent.objects.filter(student=student, sender="staff")
+    notifications = StaffNotificationStudent.objects.filter(
+        student=student, sender="staff")
     context = {
         'notifications': notifications,
         'page_title': "View Staff Notifications"
@@ -232,9 +235,11 @@ def student_add_subject(request):
         try:
             if form.is_valid():
                 section = form.cleaned_data.get('section')
-                existing_sections = SectionStudents.objects.filter(student=student)
+                existing_sections = SectionStudents.objects.filter(
+                    student=student)
                 if existing_sections.count() >= 3:
-                    messages.error(request, "Cannot to add more than 3 subjects")
+                    messages.error(
+                        request, "Cannot to add more than 3 subjects")
                     return redirect(reverse('student_add_subject'))
                 section = get_object_or_404(Section, id=section.id)
                 ss = SectionStudents()
@@ -246,7 +251,8 @@ def student_add_subject(request):
             else:
                 messages.error(request, "Invalid Data Provided")
         except Exception as e:
-            messages.error(request, "Error Occured While Adding Subject" + str(e))
+            messages.error(
+                request, "Error Occured While Adding Subject" + str(e))
 
     return render(request, "student_template/student_add_subjects.html", context)
 
@@ -261,7 +267,7 @@ def student_manage_subjects(request):
         for ts in section_timeslots:
             t = time.fromisoformat(str(ts.timeslot))
             timeslot += t.strftime("%H:%M") + " " + ts.day + ", "
-        timeslot = timeslot[:-2] 
+        timeslot = timeslot[:-2]
         data = {
             'section': ss.section,
             'timeslot': timeslot
@@ -290,7 +296,6 @@ def student_fcmtoken(request):
 def student_notify_staff(request):
     student = get_object_or_404(Student, custom_user=request.user)
     student_sections = SectionStudents.objects.filter(student=student)
-        
 
     staffSubjects = []
     for ss in student_sections:
@@ -322,14 +327,96 @@ def student_staff_notification(request):
     except Exception as e:
         return HttpResponse("False")
 
+
 @csrf_exempt
 def student_subject_delete(request, section_id):
     try:
         student = get_object_or_404(Student, custom_user=request.user)
-        student_subject = get_object_or_404(SectionStudents,student=student, section_id=section_id)
+        student_subject = get_object_or_404(
+            SectionStudents, student=student, section_id=section_id)
         student_subject.delete()
         messages.success(request, "Subject deleted successfully!")
         return redirect(reverse('student_manage_subjects'))
+
+    except Exception as e:
+        return e
+
+
+def student_add_assignment(request):
+    student = get_object_or_404(Student, custom_user=request.user)
+    form = AssignmentForm(student, request.POST or None, request.FILES or None)
+    context = {
+        'form': form,
+        'page_title': 'Add Assignment'
+    }
+    if request.method == 'POST':
+        print(form.data.get('file_name'))
+        if form.is_valid():
+            name = form.cleaned_data.get('name')
+            section = form.cleaned_data.get('section')
+            passport = form.cleaned_data.get('file_name')
+            try:
+                assignment = Assignment()
+                assignment.student = student
+                if passport is not None:
+                    fs = FileSystemStorage()
+                    filename = fs.save(passport.name, passport)
+                    passport_url = fs.url(filename)
+                    assignment.file_name = passport_url
+                assignment.section = section
+                assignment.name = name
+                assignment.save()
+                messages.success(request, "Successfully Added")
+                return redirect(reverse('student_add_assignment'))
+
+            except Exception as e:
+                messages.error(request, "Could Not Add " + str(e))
+        else:
+            messages.error(request, "Fill Form Properly")
+    return render(request, 'student_template/student_assignment_upload_template.html', context)
+
+
+def student_manage_assignments(request):
+    student = get_object_or_404(Student, custom_user=request.user)
+    section_students = SectionStudents.objects.filter(student=student)
+    sections = []
+    for ss in section_students:
+        sections.append(ss.section)
+    context = {
+        'sections': sections,
+        'page_title': 'Manage Assignments'
+    }
+    return render(request, "student_template/student_manage_assignments.html", context)
+
+
+@csrf_exempt
+def student_get_assignments(request):
+    student = get_object_or_404(Student, custom_user=request.user)
+    try:
+        section_id = request.POST.get('section')
+        section = get_object_or_404(Section, id=section_id)
+        assignements = Assignment.objects.filter(student=student, section=section)
+        assignement_data = []
+        for assignment in assignements:
+            data = {
+                'id': assignment.id,
+                'name': assignment.name,
+                'url': assignment.file_name.url
+            }
+            assignement_data.append(data)
+        return HttpResponse(json.dumps(assignement_data))
+    except Exception as e:
+        print(e)
+        return HttpResponse('False')
+
+@csrf_exempt
+def student_assignment_delete(request, assignment_id):
+    try:
+        student = get_object_or_404(Student, custom_user=request.user)
+        assignment = get_object_or_404(Assignment, id=assignment_id, student=student)
+        assignment.delete()
+        messages.success(request, "Assignment deleted successfully!")
+        return redirect(reverse('student_manage_assignments'))
 
     except Exception as e:
         return e

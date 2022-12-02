@@ -437,14 +437,15 @@ def get_assignments(request):
         student_id = request.POST.get('student_id')
         student = get_object_or_404(Student, id=student_id)
         section = get_object_or_404(Section, id=section_id)
-        assignements = Assignment.objects.get(student=student, section=section)
+        assignements = Assignment.objects.filter(student=student, section=section)
         assignement_data = []
         for assignment in assignements:
             data = {
                 'name': assignment.name,
-                'url': assignment.file_name
+                'url': assignment.file_name.url
             }
             assignement_data.append(data)
         return HttpResponse(json.dumps(assignement_data))
     except Exception as e:
+        print(e)
         return HttpResponse('False')

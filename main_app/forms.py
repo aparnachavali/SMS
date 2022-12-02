@@ -221,3 +221,17 @@ class EditResultForm(FormSettings):
         model = StudentResult
         fields = ['section', 'student', 'mid2', 'mid1', 'assignment1', 'assignment2', 'assignment3',
                   'assignment4']
+
+class AssignmentForm(FormSettings):
+    def __init__(self, student, *args, **kwargs):
+        super(AssignmentForm, self).__init__(*args, **kwargs)
+        student_sections = SectionStudents.objects.filter(student=student)
+        sections_id = []
+        for ss in student_sections:
+            sections_id.append(ss.section.id)
+        self.fields['section'].queryset = Section.objects.filter(id__in=sections_id)
+        self.fields['file_name'] = forms.FileField()
+
+    class Meta:
+        model = Assignment
+        fields = ['section', 'name', 'file_name']

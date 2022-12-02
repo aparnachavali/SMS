@@ -522,6 +522,27 @@
                                                 </a>
                                             </li>
                                             <li class="nav-item">
+                                                {% url 'student_add_assignment' as student_add_assignment %}
+                                                <a href="{{ student_add_assignment }}"
+                                                   class="nav-link {% if student_add_assignment == request.path %} active{% endif %}">
+                                                    <i class="nav-icon fas fa-file-alt"></i>
+                                                    <p>
+                                                        Add Assignment
+                                                    </p>
+                                                </a>
+                                            </li>
+
+                                            <li class="nav-item">
+                                                {% url 'student_manage_assignments' as student_manage_assignments %}
+                                                <a href="{{ student_manage_assignments }}"
+                                                   class="nav-link {% if student_manage_assignments == request.path %} active{% endif %}">
+                                                    <i class="nav-icon fas fa-file-alt"></i>
+                                                    <p>
+                                                        Manage Assignments
+                                                    </p>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
                                                 {% url 'student_view_result' as student_view_result %}
                                                 <a href="{{ student_view_result }}"
                                                    class="nav-link {% if student_view_result == request.path %} active{% endif %}">

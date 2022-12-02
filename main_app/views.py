@@ -67,7 +67,6 @@ def logout_user(request):
         logout(request)
     return redirect("/")
 
-
 # @csrf_exempt
 # def get_timeslots(request):
 #     section_id = request.POST.get('section')
