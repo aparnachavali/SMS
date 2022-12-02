@@ -414,3 +414,32 @@ def staff_view_student_notification(request):
         'page_title': "View Notifications"
     }
     return render(request, "staff_template/staff_view_student_notification.html", context)
+
+
+def staff_view_assignment(request):
+    staff = get_object_or_404(Instructor, custom_user=request.user)
+    sections = Section.objects.filter(staff=staff)
+    context = {
+        'sections': sections,
+        'page_title': "View Assignment Submissions"
+    }
+    return render(request, "staff_template/staff_view_assignment.html", context)
+
+@csrf_exempt
+def get_assignments(request):
+    try:
+        section_id = request.POST.get('section')
+        student_id = request.POST.get('student_id')
+        student = get_object_or_404(Student, id=student_id)
+        section = get_object_or_404(Section, id=section_id)
+        assignements = Assignment.objects.get(student=student, section=section)
+        assignement_data = []
+        for assignment in assignements:
+            data = {
+                'name': assignment.name,
+                'url': assignment.file_name
+            }
+            assignement_data.append(data)
+        return HttpResponse(json.dumps(assignement_data))
+    except Exception as e:
+        return HttpResponse('False')

@@ -128,13 +128,16 @@ urlpatterns = [
          name='staff_notify_student'),
     path('staff/result/fetch/', staff_views.fetch_student_result,
          name='fetch_student_result'),
-    #
     path("staff/view/student/notification/", staff_views.staff_view_student_notification,
          name="staff_view_student_notification"),
-
+    path("staff/view/assignment/", staff_views.staff_view_assignment,
+         name="staff_view_assignment"),
+    path("staff/get_assignments", staff_views.get_assignments,
+         name="get_assignments"),
 
 
     # Student
+    # ;
     path("student/home/", student_views.student_home, name='student_home'),
     path("student/view/attendance/", student_views.student_view_attendance,
          name='student_view_attendance'),
