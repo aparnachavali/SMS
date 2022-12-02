@@ -46,13 +46,15 @@ class CustomUserForm(FormSettings):
                 id=self.instance.pk).custom_user.email.lower()
             if dbEmail != formEmail:  # There has been changes
                 if CustomUser.objects.filter(email=formEmail).exists():
-                    raise forms.ValidationError("The given email is already registered")
+                    raise forms.ValidationError(
+                        "The given email is already registered")
 
         return formEmail
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'gender', 'password', 'profile_pic', 'address']
+        fields = ['first_name', 'last_name', 'email',
+                  'gender', 'password', 'profile_pic', 'address']
 
 
 class StudentForm(CustomUserForm):
@@ -62,7 +64,7 @@ class StudentForm(CustomUserForm):
     class Meta(CustomUserForm.Meta):
         model = Student
         fields = CustomUserForm.Meta.fields + \
-                 ['course', 'session']
+            ['course', 'session']
 
 
 class AdminForm(CustomUserForm):
@@ -81,7 +83,7 @@ class StaffForm(CustomUserForm):
     class Meta(CustomUserForm.Meta):
         model = Instructor
         fields = CustomUserForm.Meta.fields + \
-                 ['course']
+            ['course']
 
 
 class CourseForm(FormSettings):
@@ -103,6 +105,7 @@ class SubjectForm(FormSettings):
         # fields = ['name', 'staff', 'course', 'timeslot']
         fields = '__all__'
 
+
 class SectionForm(FormSettings):
 
     def __init__(self, *args, **kwargs):
@@ -112,6 +115,7 @@ class SectionForm(FormSettings):
         model = Section
         fields = '__all__'
 
+
 class SectionTimeSlotForm(FormSettings):
 
     def __init__(self, *args, **kwargs):
@@ -120,6 +124,7 @@ class SectionTimeSlotForm(FormSettings):
     class Meta:
         model = SectionTimeSlot
         fields = ['timeslot', 'day', 'section']
+
 
 class SessionForm(FormSettings):
     def __init__(self, *args, **kwargs):
@@ -181,11 +186,13 @@ class FeedbackStudentForm(FormSettings):
 class StudentSubjectForm(FormSettings):
     def __init__(self, student, *args, **kwargs):
         super(StudentSubjectForm, self).__init__(*args, **kwargs)
-        self.fields['subject'].queryset = Subject.objects.filter(course=student.course)
+        subjects = Subject.objects.filter(course=student.course)
+        self.fields['section'].queryset = Section.objects.filter(
+            subject__in=subjects, session=student.session)
 
     class Meta:
         model = SectionStudents
-        fields = ['subject']
+        fields = ['section']
 
 
 class StudentEditForm(CustomUserForm):

@@ -15,7 +15,7 @@ from .models import *
 
 
 def student_home(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     total_subject = Subject.objects.filter(course=student.course).count()
     total_attendance = AttendanceReport.objects.filter(student=student).count()
     total_present = AttendanceReport.objects.filter(student=student, status__in=[True]).count()
@@ -27,14 +27,15 @@ def student_home(request):
     subject_name = []
     data_present = []
     data_absent = []
-    subjects = Subject.objects.filter(course=student.course)
-    for subject in subjects:
-        attendance = Attendance.objects.filter(subject=subject)
+    section_students = SectionStudents.objects.filter(student=student)
+
+    for ss in section_students:
+        attendance = Attendance.objects.filter(section=ss.section)
         present_count = AttendanceReport.objects.filter(
             attendance__in=attendance, status__in=[True], student=student).count()
         absent_count = AttendanceReport.objects.filter(
             attendance__in=attendance, status__in=[False], student=student).count()
-        subject_name.append(subject.name)
+        subject_name.append(ss.section.subject)
         data_present.append(present_count)
         data_absent.append(absent_count)
     context = {
@@ -42,7 +43,6 @@ def student_home(request):
         'percent_present': percent_present,
         'percent_absent': percent_absent,
         'total_subject': total_subject,
-        'subjects': subjects,
         'data_present': data_present,
         'data_absent': data_absent,
         'data_name': subject_name,
@@ -54,24 +54,27 @@ def student_home(request):
 
 @csrf_exempt
 def student_view_attendance(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     if request.method != 'POST':
-        course = get_object_or_404(Course, id=student.course.id)
+        section_students = SectionStudents.objects.filter(student=student)
+        sections = []
+        for ss in section_students:
+            sections.append(ss.section)
         context = {
-            'subjects': Subject.objects.filter(course=course),
+            'sections': sections,
             'page_title': 'View Attendance'
         }
         return render(request, 'student_template/student_view_attendance.html', context)
     else:
-        subject_id = request.POST.get('subject')
+        section_id = request.POST.get('section')
         start = request.POST.get('start_date')
         end = request.POST.get('end_date')
         try:
-            subject = get_object_or_404(Subject, id=subject_id)
+            section = get_object_or_404(Section, id=section_id)
             start_date = datetime.strptime(start, "%Y-%m-%d")
             end_date = datetime.strptime(end, "%Y-%m-%d")
             attendance = Attendance.objects.filter(
-                date__range=(start_date, end_date), subject=subject)
+                date__range=(start_date, end_date), section=section)
             attendance_reports = AttendanceReport.objects.filter(
                 attendance__in=attendance, student=student)
             json_data = []
@@ -88,7 +91,7 @@ def student_view_attendance(request):
 
 def student_apply_leave(request):
     form = LeaveReportStudentForm(request.POST or None)
-    student = get_object_or_404(Student, admin_id=request.user.id)
+    student = get_object_or_404(Student, custom_user=request.user.id)
     context = {
         'form': form,
         'leave_history': LeaveReportStudent.objects.filter(student=student),
@@ -112,7 +115,7 @@ def student_apply_leave(request):
 
 def student_feedback(request):
     form = FeedbackStudentForm(request.POST or None)
-    student = get_object_or_404(Student, admin_id=request.user.id)
+    student = get_object_or_404(Student, custom_user=request.user.id)
     context = {
         'form': form,
         'feedbacks': FeedbackStudent.objects.filter(student=student),
@@ -136,7 +139,7 @@ def student_feedback(request):
 
 
 def student_view_profile(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     form = StudentEditForm(request.POST or None, request.FILES or None,
                            instance=student)
     context = {'form': form,
@@ -188,7 +191,7 @@ def student_fcmtoken(request):
 
 
 def student_view_notification(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     notifications = NotificationStudent.objects.filter(student=student)
     context = {
         'notifications': notifications,
@@ -198,7 +201,7 @@ def student_view_notification(request):
 
 
 def student_view_staff_notification(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     notifications = StaffNotificationStudent.objects.filter(student=student, sender="staff")
     context = {
         'notifications': notifications,
@@ -208,7 +211,7 @@ def student_view_staff_notification(request):
 
 
 def student_view_result(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     results = StudentResult.objects.filter(student=student)
     context = {
         'results': results,
@@ -226,15 +229,16 @@ def student_add_subject(request):
     if request.method == 'POST':
         try:
             if form.is_valid():
-                subject = form.cleaned_data.get('subject')
-                existing_subjects = SudentSubjects.objects.filter(student=student)
-                if existing_subjects.count() >= 3:
-                    messages.error(request, "Invalid Data Provided")
+                section = form.cleaned_data.get('section')
+                existing_sections = SectionStudents.objects.filter(student=student)
+                if existing_sections.count() >= 3:
+                    messages.error(request, "Cannot to add more than 3 subjects")
                     return redirect(reverse('student_add_subject'))
-                sSUb = SudentSubjects()
-                sSUb.student = student
-                sSUb.subject = subject
-                sSUb.save()
+                section = get_object_or_404(Section, section_id=section)
+                ss = SectionStudents()
+                ss.student = student
+                ss.section = section
+                ss.save()
                 messages.success(request, "Subject Added!")
                 return redirect(reverse('student_add_subject'))
             else:
@@ -246,13 +250,22 @@ def student_add_subject(request):
 
 
 def student_manage_subjects(request):
-    student = get_object_or_404(Student, admin=request.user)
-    subjects = []
-    student_subjects = SudentSubjects.objects.filter(student=student)
-    for ss in student_subjects:
-        subjects.append(ss.subject)
+    student = get_object_or_404(Student, custom_user=request.user)
+    section_data = []
+    student_sections = SectionStudents.objects.filter(student=student)
+    for ss in student_sections:
+        section_timeslots = SectionTimeSlot.objects.filter(section=ss.section)
+        timeslot = ""
+        for ts in section_timeslots:
+            timeslot += ts.timeslot + " " + ts.day + ", " 
+        data = {
+            'section': ss.section,
+            'timeslot': timeslot
+
+        }
+        section_data.append(data)
     context = {
-        'subjects': subjects,
+        'section_data': section_data,
         'page_title': 'Manage Subjects'
     }
 
@@ -272,16 +285,16 @@ def student_fcmtoken(request):
 
 
 def student_notify_staff(request):
-    student = get_object_or_404(Student, admin=request.user)
-    studentSubjects = SudentSubjects.objects.filter(student=student)
-    staffSubjects = []
+    student = get_object_or_404(Student, custom_user=request.user)
+    student_sections = SectionStudents.objects.filter(student=student)
+        
 
-    for ssb in studentSubjects:
+    staffSubjects = []
+    for ss in student_sections:
         staffSubjects.append({
-            'staff': ssb.subject.staff,
-            'subject': ssb.subject.name
+            'staff': ss.section.staff,
+            'subject': ss.section.subject.name
         })
-    # staff = CustomUser.objects.filter(user_type=2)
     context = {
         'page_title': "Send Notifications To Staff",
         'staffSubjects': staffSubjects,
@@ -291,10 +304,10 @@ def student_notify_staff(request):
 
 @csrf_exempt
 def student_staff_notification(request):
-    student = get_object_or_404(Student, admin=request.user)
+    student = get_object_or_404(Student, custom_user=request.user)
     id = request.POST.get('id')
     message = request.POST.get('message')
-    staff = get_object_or_404(Instructor, admin_id=id)
+    staff = get_object_or_404(Instructor, custom_user_id=id)
     try:
         notification = StaffNotificationStudent()
         notification.student = student
@@ -307,9 +320,10 @@ def student_staff_notification(request):
         return HttpResponse("False")
 
 @csrf_exempt
-def student_subject_delete(request, subject_id):
+def student_subject_delete(request, section_id):
     try:
-        student_subject = get_object_or_404(SudentSubjects, subject_id=subject_id)
+        student = get_object_or_404(Student, custom_user=request.user)
+        student_subject = get_object_or_404(SectionStudents,student=student, section_id=section_id)
         student_subject.delete()
         messages.success(request, "Subject deleted successfully!")
         return redirect(reverse('student_manage_subjects'))

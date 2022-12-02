@@ -137,7 +137,6 @@ urlpatterns = [
 
 
     # Student
-    # ;
     path("student/home/", student_views.student_home, name='student_home'),
     path("student/view/attendance/", student_views.student_view_attendance,
          name='student_view_attendance'),
@@ -163,6 +162,7 @@ urlpatterns = [
          name='student_manage_subjects'),
     path("student_notify_staff", student_views.student_notify_staff,
          name='student_notify_staff'),
+    #
     path("student/subject/delete/<int:subject_id>", student_views.student_subject_delete,
          name='student_subject_delete'),
 
